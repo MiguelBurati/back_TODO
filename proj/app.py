@@ -77,7 +77,7 @@ def get_user(user_id):
     finally:
         db.close()
 
-#atualizar dado (PUT)
+#atualizar usuario (PUT)
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def put_user(user_id):
 
@@ -98,7 +98,7 @@ def put_user(user_id):
     finally:
         db.close()
 
-#deletar dado (DELETE)
+#deletar usuario (DELETE)
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def del_user(user_id):
     try:
@@ -107,6 +107,80 @@ def del_user(user_id):
         cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
         db.commit()
         return jsonify({'message' : 'Dado deletado com sucesso'}), 200
+    except mysql.connector.Error as e:
+        return jsonify({'error': str(e)}), 500    
+    finally:
+        db.close()
+
+##//--> area das tarefas
+
+#criar tarefa (POST)
+@app.route('/users/<int:user_id>/tarefas', methods=['POST'])
+def add_tarefa(user_id):
+    titulo = request.json.get('titulo')
+    descricao = request.json.get('descricao')
+    status = request.json.get('status', 'pendente') #caso o primeiro nao seja satisfeito substitui pela segunda opcao
+
+    if not titulo:
+        return jsonify({'error': 'Deve conter ao menos o titulo'})
+        
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('INSERT INTO tarefas (titulo, descricao, status, user_id) VALUES (%s, %s, %s, %s)', (titulo, descricao, status, user_id))
+        db.commit()
+        return jsonify({'message': 'tarefa registrada com sucesso'}), 201
+    except mysql.connector.Error as e:
+        return jsonify({'error': str(e)}), 500    
+    finally:
+        db.close()
+
+#consultar tarefas registradas (GET)
+@app.route('/users/<int:user_id>/tarefas', methods=['GET'])
+def get_tarefas(user_id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM tarefas WHERE user_id = %s', (user_id,))
+        #logica para consultar e transformar os dados // o cursor.description coleta os nomes das colunas
+        columns = [col[0] for col in cursor.description]
+        tarefas = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return jsonify(tarefas)
+    except mysql.connector.Error as e:
+        return jsonify({'error': str(e)}), 500    
+    finally:
+        db.close()
+
+#atualizar tarefa (PUT)
+@app.route('/users/<int:user_id>/tarefas/<int:tarefa_id>', methods=['PUT'])
+def put_tarefa(user_id, tarefa_id):
+    titulo = request.json.get('titulo')
+    descricao = request.json.get('descricao')
+    status = request.json.get('status', 'pendente')
+
+    if not titulo:
+        return jsonify({'error': 'Deve conter ao menos o titulo'})
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('UPDATE tarefas SET titulo = %s, descricao = %s, status = %s WHERE user_id = %s AND id = %s', (titulo, descricao,status, user_id, tarefa_id))
+        db.commit()
+        return jsonify({'message': 'tarefa atualizada com sucesso'}), 201
+    except mysql.connector.Error as e:
+        return jsonify({'error': str(e)}), 500    
+    finally:
+        db.close()
+
+#deletar tarefa (DELETE)
+@app.route('/users/<int:user_id>/tarefas/<int:tarefa_id>', methods=['DELETE'])
+def delete_tarefa(user_id, tarefa_id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('DELETE FROM tarefas WHERE user_id = %s AND id = %s',(user_id, tarefa_id))
+        db.commit()
+        return jsonify({'message':'Tarefa deletada'})
     except mysql.connector.Error as e:
         return jsonify({'error': str(e)}), 500    
     finally:
