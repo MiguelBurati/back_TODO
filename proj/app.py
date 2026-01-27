@@ -97,7 +97,7 @@ def login():
             # pega os nomes das colunas
             columns = [col[0] for col in cursor.description]
             user = dict(zip(columns, row))
-            return jsonify({'id': user['id'], 'nome': user['nome']}), 200
+            return jsonify({'message': 'Usuário encontrado', 'id': user['id'], 'nome': user['nome']}), 200
         else:
             return jsonify({'error': 'Usuário ou senha inválidos'}), 401
     except mysql.connector.Error as e:
