@@ -77,6 +77,35 @@ def get_user(user_id):
     finally:
         db.close()
 
+#consultar e retornar usauario por ID
+@app.route('/login', methods=['POST'])
+def login():
+    nome = request.json.get('nome')
+    senha = request.json.get('senha')
+    print("Tentando login com:", nome, senha) # 👀 debug
+
+    if not nome or not senha:
+        return jsonify({'error': 'Nome e senha são obrigatórios'}), 400
+
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM users WHERE nome = %s AND senha = %s', (nome, senha))
+        row = cursor.fetchone()
+        print("Resultado:", row) # 👀 debug
+        if row:
+            # pega os nomes das colunas
+            columns = [col[0] for col in cursor.description]
+            user = dict(zip(columns, row))
+            return jsonify({'id': user['id'], 'nome': user['nome']}), 200
+        else:
+            return jsonify({'error': 'Usuário ou senha inválidos'}), 401
+    except mysql.connector.Error as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        db.close()
+
+
 #atualizar usuario (PUT)
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def put_user(user_id):
