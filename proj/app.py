@@ -186,9 +186,6 @@ def put_tarefa(user_id, tarefa_id):
     titulo = request.json.get('titulo')
     descricao = request.json.get('descricao')
     status = request.json.get('status', 'pendente')
-
-    if not titulo:
-        return jsonify({'error': 'Deve conter ao menos o titulo'})
     
     try:
         db = get_db()
