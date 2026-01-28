@@ -158,7 +158,15 @@ def add_tarefa(user_id):
         cursor = db.cursor()
         cursor.execute('INSERT INTO tarefas (titulo, descricao, status, user_id) VALUES (%s, %s, %s, %s)', (titulo, descricao, status, user_id))
         db.commit()
-        return jsonify({'message': 'tarefa registrada com sucesso'}), 201
+        tarefa_id = cursor.lastrowid # pega o id gerado pelo banco
+
+        return jsonify({
+            'id': tarefa_id,
+            'titulo': titulo,
+            'descricao': descricao,
+            'status': status,
+            'user_id': user_id
+        }), 201
     except mysql.connector.Error as e:
         return jsonify({'error': str(e)}), 500    
     finally:
