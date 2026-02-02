@@ -1,25 +1,25 @@
 import mysql.connector
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 #realiza a conexao com o db
 def get_db():
-    try:
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="1805",
-            database="tarefas_db"
-        )
-        print("Banco conectado com sucesso")
-        return db
-    except mysql.connector.Error as e:
-        print("Erro ao conectar:", e)
-        return None
+    connection = mysql.connector.connect(
+        host = os.getenv("DB_HOST"),
+        port = os.getenv("DB_PORT"),
+        user = os.getenv("DB_USER"),
+        password = os.getenv("DB_PASSWORD"),
+        database = os.getenv("DB_NAME")
+    )
+    return connection
+
     
 
 #criar usuario (POST)
@@ -221,5 +221,11 @@ def delete_tarefa(user_id, tarefa_id):
         db.close()
 
 if __name__ == '__main__':
-    get_db()
+    try:
+        conn = get_db()
+        print("Conexão com MySQL realizada com sucesso!")
+        conn.close()
+    except Exception as e:
+        print("Erro ao conectar:", e)
     app.run(debug=True)
+
