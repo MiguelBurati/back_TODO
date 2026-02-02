@@ -82,7 +82,6 @@ def get_user(user_id):
 def login():
     nome = request.json.get('nome')
     senha = request.json.get('senha')
-    print("Tentando login com:", nome, senha) # 👀 debug
 
     if not nome or not senha:
         return jsonify({'error': 'Nome e senha são obrigatórios'}), 400
